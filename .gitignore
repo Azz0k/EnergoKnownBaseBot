@@ -1,3 +1,14 @@
+.idea/
+__pycache__/
+venv/
+imports/__pycache__/
+imports/.pytest_cache/
+*.xlsx
+*.xlsb
+imports/config.py
+*.db
+*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
