@@ -19,7 +19,7 @@ async def on_bot_start_up(dispatcher: Dispatcher) -> None:
 async def background_job_refresh_data() -> None:
     while True:
         await asyncio.sleep(WORKER_DELAY_IN_SECONDS)
-#        support.update_data_frame()
+        support.update_data_frame()
 
 
 @dp.message_handler(commands=['start'])
@@ -27,7 +27,7 @@ async def show_start(message: types.Message):
     if support.users.is_telegram_id_exists(message.from_user.id):
         new_first_markup = support.create_standard_markup('')
         await message.answer(text=f'Здравствуйте, {message.from_user.first_name}')
-        await message.answer(text='это бот базы знаний. Выберите раздел',
+        await message.answer(text='Это бот базы знаний. Выберите раздел',
                              reply_markup=new_first_markup)
     else:
         markup = support.create_contact_markup()
@@ -45,7 +45,7 @@ async def contact(message: types.Message):
             await message.answer(text='это бот базы знаний. Выберите раздел',
                                  reply_markup=new_first_markup)
         else:
-            await message.answer(text='Ваш номер телефона не найден в базе. Обратитесь к вашему супервайзеру.')
+            await message.answer(text='Ваш номер телефона не найден в базе. Обратитесь к вашему руководителю.')
 
 
 @dp.callback_query_handler()
@@ -57,15 +57,14 @@ async def process_callbacks(callback_query: types.CallbackQuery):
                                text='Устаревшая версия кнопок, сотрите историю и начните заново')
         return
     query = callback_query.data[len(BUTTON_PREFIX):].strip('_')
-    children = support.get_children(query)
-    if len(children) > 0:
-        markup = support.create_standard_markup(query)
-        text = support.replace_ids_with_names(query)
-        await bot.send_message(callback_query.from_user.id, text=text, reply_markup=markup)
+    markup = support.create_standard_markup(query)
+    if query == '':
+        text = 'Выберите раздел:'
     else:
-        text = support.get_answer(query)
-        markup = support.create_repeat_markup(query)
-        await bot.send_message(callback_query.from_user.id, text=text, parse_mode='HTML', reply_markup=markup)
+        text = 'Нажмите на кнопку для просмотра видео:'
+    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
+    await bot.send_message(callback_query.from_user.id, text=text, reply_markup=markup)
+
 
 
 @dp.message_handler()
@@ -86,5 +85,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S')
-#    support.update_data_frame(start=True)
+    #    support.update_data_frame(start=True)
     executor.start_polling(dp, skip_updates=True, on_startup=on_bot_start_up)
