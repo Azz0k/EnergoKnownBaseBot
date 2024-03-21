@@ -10,7 +10,7 @@ from imports.Trie import Trie
 from imports.TwoWayDict import TwoWayDict
 from imports.Users_mssql import Users
 from imports.Content import ContentsElement
-
+import re
 
 class Support:
 
@@ -25,20 +25,28 @@ class Support:
         file_name = r'dataframe.txt'
         df = []
         parent_element = None
+        pattern = r'([0-9\.]+)(.+)'
         try:
             file = open(file_name, 'r', encoding="utf8")
             lines = file.readlines()
-            for line in lines:
-                line = line.strip()
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
                 if line[0] == '.':
                     if parent_element is not None:
                         df.append(parent_element)
 
                     temp = line[1:].split('.')
-                    parent_element = ContentsElement(element_id=temp[0], name=temp[1])
+                    parent_element = ContentsElement(element_id=temp[0], name=temp[1].strip())
                 else:
-                    temp = line.split('.')
-                    parent_element.add_child(temp[0], line, link='')
+                    temp = re.fullmatch(pattern, line)
+                    link = ''
+                    if (i+1) < len(lines) and lines[i+1].startswith('http'):
+                        link = lines[i+1].strip()
+                    parent_element.add_child(temp.group(1), temp.group(2), link=link)
+                    i += 1
+                i += 1
+
         finally:
             file.close()
             df.append(parent_element)
@@ -70,6 +78,17 @@ class Support:
                 button = InlineKeyboardButton(text=el.name,
                                               callback_data=f'{BUTTON_PREFIX}{query}_{el.id}')
                 markup.add(button)
+        else:
+            for el in self.data_frame:
+                if el.id == query:
+                    for child in el.children:
+                        button = InlineKeyboardButton(text=child.name,
+                                                      callback_data=f'{BUTTON_PREFIX}{query}_{child.id}',
+                                                      url=child.link)
+                        markup.add(button)
+            button = InlineKeyboardButton(text="Вернуться к разделам",
+                                          callback_data=f'{BUTTON_PREFIX}_')
+            markup.add(button)
         return markup
 
     def get_answer(self, query: str) -> str:
