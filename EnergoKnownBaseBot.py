@@ -62,8 +62,10 @@ async def process_callbacks(callback_query: types.CallbackQuery):
         text = 'Выберите раздел:'
     else:
         text = 'Нажмите на кнопку для просмотра видео:'
-    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
-    await bot.send_message(callback_query.from_user.id, text=text, reply_markup=markup)
+    try:
+        await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
+    finally:
+        await bot.send_message(callback_query.from_user.id, text=text, reply_markup=markup)
 
 
 
